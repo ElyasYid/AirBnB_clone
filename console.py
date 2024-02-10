@@ -67,10 +67,10 @@ class HBNBCommand(cmd.Cmd):
         }
         fits = re.search(r"\.", arg)
         if fits is not None:
-            xtra = [arg[:match.span()[0]], arg[match.span()[1]:]]
+            xtra = [arg[:fits.span()[0]], arg[fits.span()[1]:]]
             fits = re.search(r"\((.*?)\)", xtra[1])
             if fits is not None:
-                mando = [xtra[1][:match.span()[0]], match.group()[1:-1]]
+                mando = [xtra[1][:fits.span()[0]], fits.group()[1:-1]]
                 if mando[0] in args_di.keys():
                     ctruct = "{} {}".format(argl[0], mando[1])
                     return args_di[mando[0]](ctruct)
@@ -120,19 +120,22 @@ class HBNBCommand(cmd.Cmd):
     def do_destroy(self, arg):
         """Usage: destroy <class> <id> or <class>.destroy(<id>)
         Delete class instance of a given id."""
-        croted = parser(arg)
+        c = parser(arg)
         objdict = storage.all()
-        if len(croted) == 0:
+
+        if len(c) == 0:
             print("** class name missing **")
-        elif croted[0] not in HBNBCommand.__classes:
+        elif c[0] not in HBNBCommand.__classes:
             print("** class doesn't exist **")
-        elif len(croted) == 1:
+        elif len(c) == 1:
             print("** instance id missing **")
-        elif "{}.{}".format(croted[0], croted[1]) not in objdict.keys():
-            print("** no instance found **")
         else:
-            del objdict["{}.{}".format(croted[0], croted[1])]
-            storage.save()
+            ik = "{}.{}".format(c[0], c[1])
+            if ik not in objdict.keys():
+                print("** no instance found **")
+            else:
+                del objdict[ik]
+                storage.save()
 
     def do_all(self, arg):
         """Usage: all or all <class> or <class>.all()

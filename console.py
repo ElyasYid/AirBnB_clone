@@ -14,24 +14,25 @@ from models.place import Place
 
 
 def parser(arg):
-    """parser using regular expressions"""
-
+    """parser method"""
     curls = re.search(r"\{(.*?)\}", arg)
     brackets = re.search(r"\[(.*?)\]", arg)
 
-    if curls is None:
-        if brackets is None:
-            return [i.strip(",") for e in arg.split(',')]
-        else:
-            tool1 = arg[:brackets.span()[0]].split(',')
-            parsed = [i.strip(",") for e in tool1]
-            parsed.append(brackets.group())
-            return parsed
+    if curls is None and brackets is None:
+        return [i.strip() for i in re.split(r",\s*|\s+", arg)]
+    elif curls is not None and brackets is None:
+        awc = curls.group(1)
+        return [i.strip() for i in re.split(r",\s*|\s+", awc)]
+    elif curls is None and brackets is not None:
+        awb = brackets.group(1)
+        return [i.strip() for i in re.split(r",\s*|\s+", awb)]
     else:
-        tool1 = arg[:curls.span()[0]].split(',')
-        parsed = [i.strip(",") for e in tool1]
-        parsed.append(curls.group())
-        return parsed
+        if curls.start() < brackets.start():
+            awc = curls.group(1)
+            return [i.strip() for i in re.split(r",\s*|\s+", awc)]
+        else:
+            awb = brackets.group(1)
+            return [i.strip() for i in re.split(r",\s*|\s+", awb)]
 
 
 class HBNBCommand(cmd.Cmd):
@@ -90,7 +91,7 @@ class HBNBCommand(cmd.Cmd):
         """Usage: create <class>
         Creates new instance prints id.
         """
-        croted = parse(arg)
+        croted = parser(arg)
         if len(croted) == 0:
             print("** class name missing **")
         elif croted[0] not in HBNBCommand.__classes:
@@ -103,7 +104,7 @@ class HBNBCommand(cmd.Cmd):
         """Usage: show <class> <id> or <class>.show(<id>)
         Display the string rep of instance of given id.
         """
-        croted = parse(arg)
+        croted = parser(arg)
         objdict = storage.all()
         if len(croted) == 0:
             print("** class name missing **")
@@ -119,7 +120,7 @@ class HBNBCommand(cmd.Cmd):
     def do_destroy(self, arg):
         """Usage: destroy <class> <id> or <class>.destroy(<id>)
         Delete class instance of a given id."""
-        croted = parse(arg)
+        croted = parser(arg)
         objdict = storage.all()
         if len(croted) == 0:
             print("** class name missing **")
@@ -136,22 +137,22 @@ class HBNBCommand(cmd.Cmd):
     def do_all(self, arg):
         """Usage: all or all <class> or <class>.all()
         Display str rep of all instances of a given class"""
-        croted = parse(arg)
+        croted = parser(arg)
         if len(croted) > 0 and croted[0] not in HBNBCommand.__classes:
             print("** class doesn't exist **")
         else:
-            obgyn1 = []
+            objone = []
             for obj in storage.all().values():
                 if len(croted) > 0 and croted[0] == obj.__class__.__name__:
-                    obgynl.append(obj.__str__())
+                    objone.append(obj.__str__())
                 elif len(croted) == 0:
-                    obgyn1.append(obj.__str__())
-            print(obgyn1)
+                    objone.append(obj.__str__())
+            print(objone)
 
     def do_count(self, arg):
         """Usage: count <class> or <class>.count()
         Retrieve number of instances of a given class."""
-        croted = parse(arg)
+        croted = parser(arg)
         track = 0
         for obj in storage.all().values():
             if croted[0] == obj.__class__.__name__:
@@ -163,7 +164,7 @@ class HBNBCommand(cmd.Cmd):
        <class>.update(<id>, <attribute_name>, <attribute_value>) or
        <class>.update(<id>, <dictionary>)
         Update a class instance of a given id"""
-        croted = parse(arg)
+        croted = parser(arg)
         objdict = storage.all()
 
         if len(croted) == 0:

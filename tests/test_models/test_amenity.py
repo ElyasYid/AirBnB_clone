@@ -4,7 +4,7 @@
 Unittest classes:
     TestAmenity_instantiation
 """
-import unitests
+import unittest
 import models
 from datetime import datetime
 from models.amenity import Amenity
